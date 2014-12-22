@@ -7,7 +7,7 @@ var main = {
         //set bg, load assets
         game.stage.backgroundColor = '#71c5cf';
         game.load.image('bard', 'assets/bard.png');
-        game.load.image('pipe', 'assets/pipe.png');
+        game.load.image('segment', 'assets/segment.png');
     },
 
     create: function(){
@@ -25,17 +25,26 @@ var main = {
         var spacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         spacebar.onDown.add(this.jump, this);
 
-        //init pipes group, add physics
-        this.pipes = game.add.group();
-        this.pipes.enableBody = true;
-        this.pipes.createMultiple(20, 'pipe');
+        //init columns as groups of segments, add physics
+        this.columnA = game.add.group();
+        this.columnA.enableBody = true;
+        this.columnA.createMultiple(6, 'segment');
+
+        this.columnB = game.add.group();
+        this.columnB.enableBody = true;
+        this.columnB.createMultiple(6, 'segment');
+
+        //init columns group
+        this.columns = game.add.group();
+        this.columns.add(this.columnA);
+        this.columns.add(this.columnB);
 
         //set pipe generation loop
-        this.timer = game.time.events.loop(1500, this.addPipeColumn, this);
+        this.timer = game.time.events.loop(1500, this.addColumn, this);
 
         //init score & label
         this.score = 0;
-        this.scoreLabel = game.add.text(20, 20, this.score, {font: "30px Arial", fill: '#ffffff'});
+        this.scoreLabel = game.add.text(20, 20, "Yon Columnes Passed: 0", {font: "30px Arial", fill: '#ffffff'});
     },
 
     update: function(){
@@ -44,14 +53,17 @@ var main = {
             this.restart();
         }
 
-        //bard-pipe collision detection; restart game
-        game.physics.arcade.overlap(this.bard, this.pipes, this.restart, null, this);
+        //bard-column collision detection; restart game
+        game.physics.arcade.overlap(this.bard, this.segments, this.restart, null, this);
 
         //if bard is (angularly) slow, right him
         //this is so he's not flying around at an angle after multijumps
         if(this.bard.body.angularVelocity == 0){
             this.bard.angle = 0;
         }
+
+        //if bard passes column, increment score
+        //if(this.bard.body.position.x == )
     },
 
     //bard jump
@@ -65,27 +77,29 @@ var main = {
         game.state.start('main');
     },
 
-    //add a pipe segment
-    addOnePipe: function(x, y){
-        //get one pipe, set position, set movement
-        var pipe = this.pipes.getFirstDead();
-        pipe.reset(x, y);
-        pipe.body.velocity.x = -200;
+    //add a column segment
+    addSegment: function(x, y){
+        //get one segment, set position, set movement
+        var segment = this.segments.getFirstDead();
+        segment.reset(x, y);
+        segment.body.velocity.x = -200;
 
-        //kill pipe when out of bounds
-        pipe.checkWorldBounds = true;
-        pipe.outOfBoundsKill = true;
+        //kill segment when out of bounds
+        segment.checkWorldBounds = true;
+        segment.outOfBoundsKill = true;
     },
 
-    //add entire pipe column
-    addPipeColumn: function(){
+    //add entire column
+    addColumn: function(){
         //randomize hole position
         var holePos = Math.floor(Math.random() * 5) + 1;
 
-        //build pipe
+        var column = this.columns.getFirstDead();
+
+        //build column
         for(var i=0; i<8; i++){
             if(i != holePos && i != holePos + 1){
-                this.addOnePipe(400, i * 60 + 10);
+                this.addSegment(400, i * 60 + 10);
             }
         }
 
