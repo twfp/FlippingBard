@@ -1,0 +1,6 @@
+-score on passing through column (currently scores on column drawing)
+-column graphics
+
+-better flip control
+	-currently resets to default position when flipping stops
+	-ideally would smoothly stop in zero position as part of flip
